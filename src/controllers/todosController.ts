@@ -1,15 +1,9 @@
 import { Request, Response } from "express";
 import { Todo } from "../models/TodoModel";
-import { JwtPayload } from "jsonwebtoken";
 
-interface CustomRequest extends Request {
-  user: JwtPayload;
-}
-
-export const getAllTodos = async (req: CustomRequest, res: Response) => {
+export const getAllTodos = async (req: Request, res: Response) => {
   try {
     const user = req.user;
-    console.log(req);
 
     if (!user) {
       return res.status(401).json({ message: "Unauthorized" });

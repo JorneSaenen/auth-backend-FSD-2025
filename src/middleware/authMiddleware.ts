@@ -1,13 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { User } from "../types/request";
 const { JWT_SECRET } = process.env;
 
-interface CustomRequest extends Request {
-  user: string | JwtPayload;
-}
-
 export const isAuth = async (
-  req: CustomRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
@@ -33,9 +30,15 @@ export const isAuth = async (
       return;
     }
 
+    const userObject: User = {
+      _id: (user as JwtPayload)._id,
+      email: (user as JwtPayload).email,
+      name: (user as JwtPayload).name,
+    };
+
     // If the token is valid, we store the user in the request object.
     // This allows us to access the user in the following middleware.
-    req.user = user;
+    req.user = userObject;
     // We call the next function to continue to the next middleware.
     next();
   } catch (error: unknown) {
