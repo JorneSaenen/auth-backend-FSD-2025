@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { User } from "../models/UserModel";
 import { sendEmail, signToken } from "../utils/helpers";
 import { BASE_URL, JWT_SECRET } from "../utils/env";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 const saltRounds = 10;
 
@@ -19,10 +19,12 @@ export const register = async (req: Request, res: Response) => {
       expiresIn: "1h",
     });
 
+    const verifyLink = `${BASE_URL}/verify/${verificationToken}`;
+
     await sendEmail({
       email,
       name,
-      verifyLink: `${BASE_URL}/verify/${verificationToken}`,
+      verifyLink,
     });
 
     const response = await User.create({
@@ -156,20 +158,25 @@ export const verify = async (req: Request, res: Response) => {
     }
 
     const user = await User.findOne({ email: decoded.email });
+    if (user?.isVerified) {
+      res.status(400).json({ message: "Account is already verified." });
+      return;
+    }
+
     if (!user) {
-      res.status(400).json({ message: "Ongeldige verificatielink." });
+      res.status(400).json({ message: "Invalid verification link." });
       return;
     }
     user.isVerified = true;
     user.verificationToken = null;
     await user.save();
 
-    res.json({ message: "Account geverifieerd!" });
+    res.json({ message: "Account verified!" });
+    // Redirect to your website with email verification message - maybe with link to signin
+    // res.redirect(
+    //   "https://global.discourse-cdn.com/auth0/original/3X/b/a/ba809125d9957f9f3aea9517796c4bfe328fd66b.png"
+    // );
   } catch (error) {
-    if (error instanceof Error) {
-      res.status(500).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: "Something went wrong" });
-    }
+    res.status(500).json({ message: "Something went wrong" });
   }
 };
