@@ -10,6 +10,7 @@ import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import { MONGO_URI } from "./utils/env";
 import morgan from "morgan";
+import { verify } from "./controllers/authController";
 
 // Variables
 const app = express();
@@ -23,6 +24,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api", authRoutes);
+app.get("/verify/:token", verify);
 app.use("/api/todos", isAuth, todoRoutes);
 app.all("*", notFound);
 
