@@ -14,6 +14,7 @@
 
 - Check if user exists
 - Check if password matches - bcrypt
+- Check if user is verified - TODO Later
 - Generate JWT
 - Set cookie
 - Send response
@@ -29,3 +30,18 @@
 - Verify token
 - Set req.user
 - Call next() to move to the next middleware or route handler
+
+## Sendgrid - TODO Later
+
+- Send verification email
+- Send reset password email
+- Setup in Sendgrid
+- Setup in node
+- Template
+
+## Reset Password - TODO Later
+
+- Check if user exists
+- Generate reset token
+- Send reset password email
+- Send response
