@@ -2,7 +2,12 @@ import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 import * as ms from "ms";
 import sgMail from "@sendgrid/mail";
-import { FROM_EMAIL, SENDGRID_API_KEY, SENDGRID_TEMPLATE_ID } from "./env";
+import {
+  FROM_EMAIL,
+  SENDGRID_API_KEY,
+  SENDGRID_TEMPLATE_ID_RESET,
+  SENDGRID_TEMPLATE_ID_VERIFY,
+} from "./env";
 
 interface UserPayload {
   _id: Types.ObjectId;
@@ -19,7 +24,9 @@ interface Params {
 interface MailData {
   email: string;
   name: string;
-  verifyLink: string;
+  link?: string;
+  message?: string;
+  type: "verify" | "reset";
 }
 
 interface MailContent {
@@ -37,7 +44,10 @@ export const sendEmail = async (data: MailData) => {
   try {
     const msg = {
       from: FROM_EMAIL as string,
-      template_id: SENDGRID_TEMPLATE_ID,
+      template_id:
+        data.type === "verify"
+          ? SENDGRID_TEMPLATE_ID_VERIFY
+          : SENDGRID_TEMPLATE_ID_RESET,
       personalizations: [
         {
           to: [

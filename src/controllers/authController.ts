@@ -4,6 +4,7 @@ import { User } from "../models/UserModel";
 import { sendEmail, signToken } from "../utils/helpers";
 import { BASE_URL, JWT_SECRET } from "../utils/env";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 const saltRounds = 10;
 
@@ -24,7 +25,8 @@ export const register = async (req: Request, res: Response) => {
     await sendEmail({
       email,
       name,
-      verifyLink,
+      link: verifyLink,
+      type: "verify",
     });
 
     const response = await User.create({
@@ -178,5 +180,83 @@ export const verify = async (req: Request, res: Response) => {
     // );
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// Function to send password reset email
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      res.status(400).json({ message: "Please fill all fields" });
+      return;
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      res.status(400).json({ message: "User not found" });
+      return;
+    }
+
+    // Token genereren
+    const token = crypto.randomBytes(20).toString("hex");
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 uur geldig
+    await user.save();
+
+    // Email verzenden
+    const resetLink = `${BASE_URL}/reset-password/${token}`;
+    await sendEmail({
+      email,
+      name: user.name,
+      link: resetLink,
+      type: "reset",
+    });
+
+    res.status(200).json({ message: "Email sent" });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(500).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: "Something went wrong" });
+    }
+  }
+};
+
+// Function to reset password with token /:token
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!token || !password) {
+      res.status(400).json({ message: "Please fill all fields" });
+      return;
+    }
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: new Date(Date.now()) },
+    });
+
+    if (!user) {
+      res.status(400).json({ message: "Invalid or expired token" });
+      return;
+    }
+
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(500).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: "Something went wrong" });
+    }
   }
 };
