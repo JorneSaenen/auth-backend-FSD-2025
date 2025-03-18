@@ -8,12 +8,15 @@ import todoRoutes from "./routes/todoRoutes";
 import { isAuth } from "./middleware/authMiddleware";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
+import { MONGO_URI } from "./utils/env";
+import morgan from "morgan";
 
 // Variables
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
+app.use(morgan("dev"));
 app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
@@ -25,7 +28,7 @@ app.all("*", notFound);
 
 // Database connection
 try {
-  await mongoose.connect(process.env.MONGO_URI!);
+  await mongoose.connect(MONGO_URI!);
   console.log("Database connection OK");
 } catch (err) {
   console.error(err);

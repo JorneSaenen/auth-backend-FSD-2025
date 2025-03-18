@@ -1,11 +1,10 @@
 import { Request, Response } from "express";
-import { Error as MongooseError } from "mongoose";
 import bcrypt from "bcrypt";
 import { User } from "../models/UserModel";
 import { signToken } from "../utils/helpers";
+import { JWT_SECRET } from "../utils/env";
 
 const saltRounds = 10;
-const SECRET = process.env.JWT_SECRET;
 
 export const register = async (req: Request, res: Response) => {
   // This function creates a new user when the `/register` endpoint is hit.
@@ -37,7 +36,7 @@ export const register = async (req: Request, res: Response) => {
     // If the JWT_SECRET environment variable is not set, throw an
     // error. This is a security risk, as it would allow anyone to
     // create a JWT token and access the API.
-    if (!SECRET) {
+    if (!JWT_SECRET) {
       throw new Error("Internal error");
     }
 
@@ -53,7 +52,7 @@ export const register = async (req: Request, res: Response) => {
     // takes the user object and the JWT_SECRET as arguments.
     const token = signToken({
       user: user,
-      secret: SECRET,
+      secret: JWT_SECRET,
       expiresIn: "7d",
     });
 
@@ -110,7 +109,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // Ensure the SECRET environment variable is set
-    if (!SECRET) {
+    if (!JWT_SECRET) {
       throw new Error("Internal error");
     }
 
@@ -124,7 +123,7 @@ export const login = async (req: Request, res: Response) => {
     // Generate a JWT token with the user object, secret, and expiration
     const token = signToken({
       user: tokenUser,
-      secret: SECRET,
+      secret: JWT_SECRET,
       expiresIn: "7d",
     });
 

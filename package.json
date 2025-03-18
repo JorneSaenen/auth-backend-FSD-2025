@@ -26,9 +26,11 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
+    "morgan": "^1.10.0",
     "ms": "^2.1.3"
   },
   "devDependencies": {
+    "@types/morgan": "^1.9.9",
     "@types/node": "^22.10.7",
     "pkgroll": "^2.6.1",
     "tsx": "^4.19.2",
